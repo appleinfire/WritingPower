@@ -136,8 +136,11 @@ ok(await page.isVisible('text=Hi, Leo!'), 'second profile opens');
 ok(await state(() => APP.state.stats.sentences === 0 && APP.state.kind === 'g2'), 'profiles do not share progress');
 await page.reload();
 ok(await page.isVisible('text=Who’s writing?'), 'with two profiles the app asks who is writing');
+ok(await page.evaluate(() => { const own = APP.CONFIG.apps.find((a) => a.id === APP.CONFIG.id); const links = [...document.querySelectorAll('.appbtn')].map((a) => a.href);
+  return links.length === APP.CONFIG.apps.filter((a) => a.id !== APP.CONFIG.id).length && !(own && links.includes(own.url)); }), 'links to our other apps, not to this one');
 await page.click('.profile >> text=Mia');
 ok(await state(() => APP.state.stats.sentences === 10 && APP.state.equipped.theme === 'rainbow'), 'progress survives a reload');
+ok(await page.getAttribute('.home .appbtn', 'href') === 'https://appleinfire.github.io/Math/', 'the home screen links to Math Expedition');
 
 await browser.close();
 if (errors.length) { console.error('Console errors:\n' + errors.join('\n')); process.exit(1); }

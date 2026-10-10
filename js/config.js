@@ -16,6 +16,12 @@
       { id: 'g3', label: 'Third grade', icon: '🦉', color: '#9b7fd4', about: 'Big words and tricky spellings' },
     ],
     avatars: ['🦊', '🐼', '🐸', '🦉', '🐯', '🐙', '🦄', '🐢'],
+    // Our apps. The picker and home screens link to every app except this one (matched by id).
+    // Each app keeps its own profiles and progress; the link just opens it. Keep this list the same in every app.
+    apps: [
+      { id: 'math-expedition', name: 'Math Expedition', icon: '🧭', url: 'https://appleinfire.github.io/Math/' },
+      { id: 'writing-power', name: 'WritingPower', icon: '✏️', url: 'https://appleinfire.github.io/WritingPower/' },
+    ],
     // Firebase project of Math Expedition (shared; data is separated by the family key, which is salted with `id`).
     // These values identify the project; they are not secrets. null = no cloud sync.
     firebase: {

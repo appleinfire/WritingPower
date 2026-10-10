@@ -20,6 +20,11 @@
   const kindOf = (id) => CFG.kinds.find((k) => k.id === id) || CFG.kinds[0];
   const kindChip = (id) => `<span class="kchip" style="--pc:${kindOf(id).color}">${kindOf(id).label}</span>`;
   const pct = (c, a) => (a ? Math.round((c / a) * 100) : 0);
+  // Links to our other apps (CFG.apps without this one).
+  const appLinks = () => {
+    const other = (CFG.apps || []).filter((a) => a.id !== CFG.id);
+    return other.length ? `<nav class="apps" aria-label="Our other apps"><span>Our other apps:</span>${other.map((a) => `<a class="appbtn" href="${esc(a.url)}">${a.icon} ${esc(a.name)}</a>`).join('')}</nav>` : '';
+  };
   const starsText = (n) => '⭐'.repeat(n) + '☆'.repeat(3 - n);
   const live = () => !S.preview; // nothing is earned, spent or recorded in the grown-up preview
   const inPlay = () => !!sess && root().classList.contains('is-play');
@@ -149,6 +154,7 @@
       </div>
       <p class="muted center">Each ${WORD} has their own levels, points and creatures.</p>
       ${syncLine()}
+      ${appLinks()}
     </main>`, 'is-who');
     cur = 'who';
   }
@@ -283,6 +289,7 @@
         <button class="tile" data-act="go" data-arg="parent"><span>🔒</span><b>For grown-ups</b><small>Report and settings</small></button>
       </div>
       ${syncLine()}
+      ${appLinks()}
     </main>`, 'is-home wide');
     cur = 'home';
   }
