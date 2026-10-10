@@ -48,6 +48,8 @@ Behind a multiplication question:
 - **Erase progress.**
 - **👀 Preview:** every level is open, nothing is saved, and the shop is closed.
 
+**Our other apps.** The bottom of the "Who's writing?" and home screens links to our other apps (now Math Expedition). The list is `apps` in `js/config.js`; keep it the same in every app, and the app skips its own entry by `id`.
+
 ## Same progress on every device
 
 1. On the first device choose **Create a family**. Pick a family code (at least 6 letters, for example `smith-tigers`) and a 4–6 digit PIN, and write them down.

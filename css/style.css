@@ -75,6 +75,9 @@ label, .label { display: block; font-weight: 700; margin: 14px 0 6px; }
 .sync.s-synced { color: var(--accent-dark); }
 .sync.s-offline, .sync.s-error { color: #8a5a00; background: var(--warn-soft); }
 
+.apps { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin: 12px auto 0; font-size: 0.88rem; font-weight: 700; color: var(--ink-soft); }
+.appbtn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; background: var(--card); color: var(--ink); text-decoration: none; box-shadow: inset 0 0 0 2px var(--line); }
+
 .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin-top: 14px; }
 .tile { display: flex; flex-direction: column; gap: 2px; padding: 18px; border: 0; border-radius: var(--r); background: var(--card); text-align: left; box-shadow: inset 0 0 0 2px var(--line); }
 .tile span { font-size: 2rem; }
