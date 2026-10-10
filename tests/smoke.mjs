@@ -140,7 +140,17 @@ ok(await page.evaluate(() => { const own = APP.CONFIG.apps.find((a) => a.id === 
   return links.length === APP.CONFIG.apps.filter((a) => a.id !== APP.CONFIG.id).length && !(own && links.includes(own.url)); }), 'links to our other apps, not to this one');
 await page.click('.profile >> text=Mia');
 ok(await state(() => APP.state.stats.sentences === 10 && APP.state.equipped.theme === 'rainbow'), 'progress survives a reload');
-ok(await page.getAttribute('.home .appbtn', 'href') === 'https://appleinfire.github.io/Math/', 'the home screen links to Math Expedition');
+ok(await page.getAttribute('.home .appbtn', 'href') === 'https://appleinfire.github.io/Math/#who=Mia', 'the home screen links to Math Expedition with the name');
+
+// A link from our other app with a name (#who=) opens that profile; an unknown name offers to add it.
+await page.goto('about:blank'); // a link from another app loads the page fresh
+await page.goto(url + '#who=mia');
+ok(await page.isVisible('text=Hi, Mia!'), '#who= opens the profile with that name');
+ok(await page.evaluate(() => location.hash === ''), '#who= is dropped from the address');
+ok(await page.evaluate(() => [...document.querySelectorAll('.appbtn')].every((a) => a.href.endsWith('#who=Mia'))), 'links from home carry the name');
+await page.goto('about:blank');
+await page.goto(url + '#who=Zed');
+ok(await page.inputValue('#ob-name') === 'Zed', 'an unknown name opens the new-profile form with the name filled in');
 
 await browser.close();
 if (errors.length) { console.error('Console errors:\n' + errors.join('\n')); process.exit(1); }

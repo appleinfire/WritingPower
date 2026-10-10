@@ -104,5 +104,37 @@ for (const s of scripts.concat('css/style.css')) assert.ok(cached.includes(`'${s
   assert.strictEqual(k1, k2);
   assert.match(k1, /^[a-f0-9]{64}$/, 'matches the pattern in firestore.rules');
   assert.notStrictEqual(k1, await APP.cloud.deriveId('smith-tigers', '1235'));
+
+  // One family code + PIN for all our apps: the root is the key Math Expedition already uses,
+  // and each app keeps its data under its own key derived from the root.
+  const MATH_KEY = 'd359f955e02a16da5751505a2d0bc555a26c7a08f33ac7eb1a1469ded2b601e6'; // Math Expedition: smith-tigers + 1234
+  const root = await APP.cloud.deriveRoot('smith-tigers', '1234');
+  assert.strictEqual(root, MATH_KEY, 'same family root as Math Expedition');
+  assert.strictEqual(await APP.cloud.appKey(root, 'math-expedition'), MATH_KEY, 'Math Expedition keeps its data under the root');
+  assert.strictEqual(k1, await APP.cloud.appKey(root), 'this app: key from the root');
+  assert.strictEqual(k1, await APP.cloud.appKey(root, 'writing-power'), 'this app is writing-power');
+  assert.notStrictEqual(k1, root);
+  assert.notStrictEqual(await APP.cloud.appKey(root, 'writing-power'), await APP.cloud.appKey(root, 'another-app'), 'apps do not share data');
+
+  // A family another app connected on this device can be joined without the PIN.
+  assert.strictEqual(APP.cloud.sibling(), null);
+  localStorage.setItem('math-expedition-family', JSON.stringify({ fid: MATH_KEY, name: 'smith-tigers' })); // Math's older link: no root
+  assert.deepStrictEqual(APP.cloud.sibling(), { root: MATH_KEY, name: 'smith-tigers', app: 'Math Expedition' });
+  localStorage.setItem('math-expedition-family', JSON.stringify({ root: MATH_KEY, fid: MATH_KEY, name: 'smith-tigers' })); // newer link
+  assert.deepStrictEqual(APP.cloud.sibling(), { root: MATH_KEY, name: 'smith-tigers', app: 'Math Expedition' });
+  localStorage.removeItem('math-expedition-family');
+  localStorage.setItem('writing-power-family', JSON.stringify({ root: MATH_KEY, fid: 'x', name: 'smith-tigers' }));
+  assert.strictEqual(APP.cloud.sibling(), null, 'our own family link is never offered as another app');
+  localStorage.removeItem('writing-power-family');
+
+  // Catch-up on start: what never reached the server goes up; what was deleted elsewhere goes away here.
+  const plan = (l, srv, syn) => { const p = APP.cloud.catchUpPlan(l, srv, syn); return [p.upload.join(), p.remove.join(), JSON.stringify(p.onServer)]; };
+  assert.deepStrictEqual(plan([{ id: 'a', rev: 5 }], { a: 5 }, {}), ['', '', '{"a":5}'], 'in sync: nothing to do');
+  assert.deepStrictEqual(plan([{ id: 'a', rev: 6 }], { a: 5 }, { a: 5 }), ['a', '', '{}'], 'a change that never went up is uploaded');
+  assert.deepStrictEqual(plan([{ id: 'a', rev: 4 }], { a: 5 }, {}), ['', '', '{"a":5}'], 'the server is newer: the live update brings it');
+  assert.deepStrictEqual(plan([{ id: 'n', rev: 3 }], {}, {}), ['n', '', '{}'], 'a new profile that never went up is uploaded');
+  assert.deepStrictEqual(plan([{ id: 'd', rev: 3 }], {}, { d: 3 }), ['', 'd', '{}'], 'deleted on another device: removed here too');
+  assert.deepStrictEqual(plan([{ id: 'd', rev: 4 }], {}, { d: 3 }), ['d', '', '{}'], 'changed here after it was deleted elsewhere: kept and uploaded');
+  assert.deepStrictEqual(plan([{ id: 'd', rev: 3 }, { id: 'a', rev: 1 }], { a: 1 }, null), ['', '', '{"a":1}'], 'no record yet: a missing profile is left alone');
   console.log('shell tests passed');
 })().catch((e) => { console.error(e); process.exit(1); });
