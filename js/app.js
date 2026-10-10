@@ -12,6 +12,7 @@
   let sess = null; // the activity in progress
   let ui = {}; // small per-screen state (forms, "tap again to confirm" buttons, chosen grade, zoo tab…)
   let cur = ''; // screen that may be redrawn when another device changes the data ('' = leave it alone)
+  let wanted = ''; // profile name from a link of our other app (…/#who=Mia): open that profile on start
   let timers = [];
 
   const $ = (sel) => document.querySelector(sel);
@@ -20,10 +21,12 @@
   const kindOf = (id) => CFG.kinds.find((k) => k.id === id) || CFG.kinds[0];
   const kindChip = (id) => `<span class="kchip" style="--pc:${kindOf(id).color}">${kindOf(id).label}</span>`;
   const pct = (c, a) => (a ? Math.round((c / a) * 100) : 0);
-  // Links to our other apps (CFG.apps without this one).
+  // Links to our other apps (CFG.apps without this one). With a profile open, the link carries its name
+  // (#who=Mia), so the other app opens the profile with the same name.
   const appLinks = () => {
     const other = (CFG.apps || []).filter((a) => a.id !== CFG.id);
-    return other.length ? `<nav class="apps" aria-label="Our other apps"><span>Our other apps:</span>${other.map((a) => `<a class="appbtn" href="${esc(a.url)}">${a.icon} ${esc(a.name)}</a>`).join('')}</nav>` : '';
+    const who = st ? '#who=' + encodeURIComponent(st.name) : '';
+    return other.length ? `<nav class="apps" aria-label="Our other apps"><span>Our other apps:</span>${other.map((a) => `<a class="appbtn" href="${esc(a.url + who)}">${a.icon} ${esc(a.name)}</a>`).join('')}</nav>` : '';
   };
   const starsText = (n) => '⭐'.repeat(n) + '☆'.repeat(3 - n);
   const live = () => !S.preview; // nothing is earned, spent or recorded in the grown-up preview
@@ -189,7 +192,10 @@
   function syncLine() {
     const C = CL();
     if (!C) return '';
-    if (!C.family) return `<div id="sync" class="sync off">📱 Progress is saved on this device only. <button class="linkbtn" data-act="go" data-arg="family">Connect family ☁️</button></div>`;
+    if (!C.family) {
+      const sib = C.sibling();
+      return `<div id="sync" class="sync off">📱 Progress is saved on this device only. <button class="linkbtn" data-act="go" data-arg="family">${sib ? `Use family ${esc(sib.name)} ☁️` : 'Connect family ☁️'}</button></div>`;
+    }
     const label = { connecting: 'connecting…', saving: 'saving…', synced: 'synced ✓', offline: 'offline — saved here, will sync later', error: 'sync problem, will retry' }[C.status] || 'synced ✓';
     return `<div id="sync" class="sync s-${C.status}">☁️ Family <b>${esc(C.family.name)}</b> · ${label}</div>`;
   }
@@ -211,12 +217,15 @@
     const title = f.mode === 'create' ? 'Create a family' : f.mode === 'join' ? 'Join your family' : 'Save progress online';
     let body;
     if (f.mode === 'choose') {
+      const sib = APP.cloud.sibling();
       body = `<p class="lead center">Connect this device to your family, and every phone, tablet and computer shows the same ${WORD}s, levels and creatures.</p>
         <div class="kinds">
+          ${sib ? `<button class="kind-pick" id="fam-sib" data-act="famSibling" style="--pc:#5b3fa8"><span class="gi">🔗</span><b>Use family ${esc(sib.name)}</b><small>Already connected in ${esc(sib.app)} on this device · no PIN needed</small></button>` : ''}
           <button class="kind-pick" data-act="famMode" data-arg="create" style="--pc:#2bb3a3"><span class="gi">🏡</span><b>Create a family</b><small>First device: choose a family code and PIN</small></button>
           <button class="kind-pick" data-act="famMode" data-arg="join" style="--pc:#e0a21b"><span class="gi">🔑</span><b>I already have a family</b><small>Another device: type the same code and PIN</small></button>
           ${hasKids ? '' : '<button class="kind-pick" data-act="localOnly" style="--pc:#c4ccd6"><span class="gi">📱</span><b>Use this device only</b><small>You can connect later in For grown-ups</small></button>'}
-        </div>`;
+        </div>
+        <p class="famerr" id="fam-err" role="alert">${esc(f.error)}</p>`;
     } else {
       const create = f.mode === 'create';
       body = `<p class="muted">${create ? 'Pick a family code you will remember (at least 6 letters, for example <b>smith-tigers</b>) and a 4–6 digit PIN. Write them down: you type them once on every new device.' : 'Type the family code and PIN you chose on the first device.'}${hasKids && create ? ` The ${WORD}s already on this device will be added to the family.` : ''}</p>
@@ -242,8 +251,32 @@
     try { await APP.cloud.connect({ code: f.code, pin, create: f.mode === 'create' }); } catch (e) { return showErr(e.code); }
     ui.fam = null;
     toast('☁️ Family connected');
+    startScreen();
+  }
+  async function famSibling() {
+    const btn = $('#fam-sib'), err = $('#fam-err');
+    btn.disabled = true;
+    err.textContent = '';
+    try { await APP.cloud.connectSibling(); } catch (e) { btn.disabled = false; ui.fam.error = FAM_ERRORS[e.code] || 'Something went wrong. Try again.'; err.textContent = ui.fam.error; return; }
+    ui.fam = null;
+    toast('☁️ Family connected');
+    startScreen();
+  }
+  // The first screen: the profile a link asked for (#who=), else the only profile, else the picker.
+  // Right after joining a family, its profiles can arrive a moment later: until then the new-profile form
+  // is the 'start' screen, and onCloud runs startScreen again when they come.
+  function startScreen() {
     const list = S.profiles();
-    if (!list.length) return newProfile();
+    const name = wanted.trim();
+    if (name) {
+      const p = list.find((x) => x.name.trim().toLowerCase() === name.toLowerCase());
+      if (p) { wanted = ''; return openProfile(p.id); }
+      ui.newKid = { name: name.slice(0, 16), kind: CFG.kinds[0].id, avatar: CFG.avatars[0] }; // not here yet: offer to add
+      newProfile();
+      cur = 'start';
+      return;
+    }
+    if (!list.length) { ui.newKid = null; newProfile(); cur = 'start'; return; }
     if (list.length === 1) return openProfile(list[0].id);
     who();
   }
@@ -253,6 +286,7 @@
     if (what === 'status') { const el = $('#sync'); if (el) el.outerHTML = syncLine(); return; }
     if (root().classList.contains('is-play')) return;
     if (st && APP.state !== st) { st = null; return who(); } // this profile was deleted on another device
+    if (cur === 'start') { if (S.profiles().length) startScreen(); return; }
     if (!cur || $('#modal')) return;
     const redraw = { who, home, shop, zoo }[cur];
     if (redraw) redraw();
@@ -694,6 +728,7 @@
   }
   function go(where) {
     remember(where);
+    wanted = '';
     closeModal();
     FX.hush();
     if (where !== 'parent') { ui.resetArmed = false; ui.delArmed = null; ui.discArmed = false; }
@@ -718,6 +753,7 @@
       const k = ui.newKid;
       if (!k.name) { $('#ob-name').focus(); $('#ob-name').classList.add('shake'); return; }
       endPreview();
+      wanted = '';
       st = S.create({ name: k.name.slice(0, 16), kind: k.kind, avatar: k.avatar });
       ui = {};
       remember('home');
@@ -725,7 +761,8 @@
     },
     famMode: (a) => { ui.fam = ui.fam || {}; if ($('#fam-code')) ui.fam.code = $('#fam-code').value; ui.fam.mode = a; ui.fam.error = ''; family(); },
     famSubmit: () => famSubmit(),
-    localOnly: () => { try { localStorage.setItem(CFG.id + '-localonly', '1'); } catch (e) { /* ignore */ } ui.newKid = null; newProfile(); },
+    famSibling: () => famSibling(),
+    localOnly: () => { try { localStorage.setItem(CFG.id + '-localonly', '1'); } catch (e) { /* ignore */ } ui.newKid = null; startScreen(); },
     famDisconnect: () => {
       if (!ui.discArmed) { ui.discArmed = true; return parent(); }
       ui.discArmed = false;
@@ -840,15 +877,17 @@
       else if (e.key === 'Enter') { e.preventDefault(); FX.speak(sess.target, rate()); }
     });
     window.addEventListener('popstate', onPop);
-    try { if (useHistory) history.replaceState({ where: 'start' }, ''); } catch (e) { /* ignore */ }
-    // One profile: straight to its home. Several: ask who is writing.
+    const m = /^#who=(.+)$/.exec(location.hash);
+    if (m) { try { wanted = decodeURIComponent(m[1]); } catch (e) { /* broken link: ignore */ } }
+    try {
+      if (useHistory) history.replaceState({ where: 'start' }, '', location.pathname + location.search); // drop #who= from the address
+    } catch (e) { /* ignore */ }
     // A brand-new device first offers to join the family, so progress is shared from the start.
-    const list = S.profiles();
+    // Then: the profile a link asked for, the only profile, or the picker.
     let localOnly = false;
     try { localOnly = localStorage.getItem(CFG.id + '-localonly') === '1'; } catch (e) { /* ignore */ }
-    if (!list.length && CL() && !APP.cloud.family && !localOnly) return family();
-    if (list.length === 1) openProfile(list[0].id);
-    else who();
+    if (!S.profiles().length && CL() && !APP.cloud.family && !localOnly) return family();
+    startScreen();
   }
 
   APP.app = { init, go, session: () => sess }; // session() is used by the browser tests

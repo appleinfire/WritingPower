@@ -84,6 +84,16 @@ try {
   await C.waitForFunction(() => document.querySelector('#fam-err').textContent.length > 0, null, { timeout: 20000 });
   check(/No family found/.test(await C.textContent('#fam-err')), 'a wrong PIN finds no family');
 
+  // Device D already has the family in Math Expedition (same origin): one tap, no code or PIN
+  const D = await device('D');
+  await D.evaluate(async ([c, p]) => { localStorage.setItem('math-expedition-family', JSON.stringify({ fid: await APP.cloud.deriveRoot(c, p), name: c })); }, [code, pin]);
+  await D.reload();
+  await D.waitForSelector('#fam-sib');
+  check((await D.textContent('#fam-sib')).includes(code), 'device D offers the family from Math Expedition');
+  await D.click('#fam-sib');
+  await D.waitForSelector('text=Hi, Cloudy!', { timeout: 20000 });
+  check(await D.evaluate(() => APP.state.stats.sentences === 2), 'device D joined without the PIN and got the same progress');
+
   // Clean up: delete the test profile (removed on A, gone on B)
   await A.evaluate(() => APP.store.remove(APP.state.id));
   await B.waitForFunction(() => APP.store.profiles().length === 0, null, { timeout: 20000 });

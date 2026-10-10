@@ -48,14 +48,16 @@ Behind a multiplication question:
 - **Erase progress.**
 - **👀 Preview:** every level is open, nothing is saved, and the shop is closed.
 
-**Our other apps.** The bottom of the "Who's writing?" and home screens links to our other apps (now Math Expedition). The list is `apps` in `js/config.js`; keep it the same in every app, and the app skips its own entry by `id`.
+**Our other apps.** The bottom of the "Who's writing?" and home screens links to our other apps (now Math Expedition). The list is `apps` in `js/config.js`; keep it the same in every app, and the app skips its own entry by `id`. With a child open, the link carries the name (`#who=Mia`): the other app opens the profile with that name, or offers to add it with the name filled in.
 
 ## Same progress on every device
 
 1. On the first device choose **Create a family**. Pick a family code (at least 6 letters, for example `smith-tigers`) and a 4–6 digit PIN, and write them down.
 2. On every other device open the website and choose **I already have a family**, then type the same code and PIN.
 
-Progress syncs through Firebase (the project shared with Math Expedition). The PIN never leaves the device: the browser turns the code and PIN into a key, salted with this app's id (`writing-power`). Families of the two apps never mix, even with the same code and PIN.
+**One family for all our apps.** Use the same family code and PIN as in Math Expedition. If Math Expedition is already connected on the device, the family screen offers **Use family …**: one tap, no PIN.
+
+Progress syncs through Firebase (the project shared with Math Expedition). The PIN never leaves the device: the browser turns the code and PIN into the family root, which is the same in all our apps. Each app keeps its data under its own key derived from the root, so the apps' progress never mixes. Never change `FAMILY_SALT` or `ROOT_APP` in `js/cloud.js`.
 
 Each device keeps a full copy and works offline. When a child plays on two devices offline, the copies are merged without losing anything earned:
 
