@@ -10,7 +10,7 @@
  * Template tiers: 1 = easier, 3 = harder. Early levels use tier 1, later
  * levels use tiers 2 and 3.
  */
-window.WP_CONTENT = {
+(globalThis.APP = globalThis.APP || {}).CONTENT = {
   k: {
     id: "k",
     name: "Kindergarten",
@@ -280,4 +280,4 @@ window.WP_CONTENT = {
   }
 };
 
-window.WP_GRADE_ORDER = ["k", "g1", "g2", "g3"];
+globalThis.APP.GRADES = ["k", "g1", "g2", "g3"];
