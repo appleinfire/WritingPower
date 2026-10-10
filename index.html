@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#ffd166">
+  <title>WritingPower</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✏️</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-theme="sunny">
+  <header class="topbar">
+    <button class="icon-btn" id="btn-home" aria-label="Home">🏠</button>
+    <div class="brand">✏️ Writing<span>Power</span></div>
+    <button class="points-pill" id="points-pill" aria-label="Points, open shop">⭐ <span class="points-value">0</span></button>
+    <button class="icon-btn" id="btn-sound" aria-label="Sound on or off">🔊</button>
+  </header>
+
+  <main>
+    <!-- Home -->
+    <section class="screen active" id="screen-home">
+      <h1 class="hello">Hear it. Write it. Win prizes!</h1>
+      <p class="sub">Pick your grade:</p>
+      <div class="grade-grid" id="grade-grid"></div>
+      <div class="home-actions">
+        <button class="big-btn shop-btn" data-go="shop">🥚 Shop &amp; Hatch</button>
+        <button class="big-btn zoo-btn" data-go="zoo">🐾 My Zoo</button>
+      </div>
+    </section>
+
+    <!-- Grade: endless + level map -->
+    <section class="screen" id="screen-grade">
+      <div class="screen-head">
+        <button class="back-btn" data-go="home">⬅</button>
+        <h2 id="grade-title"></h2>
+      </div>
+      <button class="big-btn endless-btn" id="btn-endless">
+        ♾️ Endless Practice
+        <small id="endless-best"></small>
+      </button>
+      <h3 class="section-title">🗺️ Adventure Levels <small id="levels-progress"></small></h3>
+      <div class="level-map" id="level-map"></div>
+    </section>
+
+    <!-- Play -->
+    <section class="screen" id="screen-play">
+      <div class="play-head">
+        <button class="back-btn" id="btn-play-back">⬅</button>
+        <div class="play-info" id="play-info"></div>
+        <div class="play-dots" id="play-dots"></div>
+      </div>
+      <div class="say-row">
+        <button class="say-btn" id="btn-say">🔊 Say it!</button>
+        <button class="tool-btn" id="btn-slow">🐢<span>Slow</span></button>
+        <button class="tool-btn" id="btn-word">💬<span>Word</span></button>
+        <button class="tool-btn" id="btn-peek">👀<span>Peek <b id="peek-cost"></b></span></button>
+      </div>
+      <div class="boxes" id="boxes"></div>
+      <p class="play-tip" id="play-tip">Press 🔊, listen, then type the letters!</p>
+      <div class="play-stats">
+        <span>Oops: <b id="mistakes">0</b></span>
+        <span id="streak-wrap" hidden>🔥 Streak: <b id="streak">0</b></span>
+      </div>
+      <div class="keyboard" id="keyboard"></div>
+      <button class="layout-btn" id="btn-layout"></button>
+    </section>
+
+    <!-- Shop -->
+    <section class="screen" id="screen-shop">
+      <div class="screen-head">
+        <button class="back-btn" data-go="home">⬅</button>
+        <h2>🛒 Shop</h2>
+      </div>
+      <p class="sub">You have <b>⭐ <span class="points-value">0</span></b> points to spend.</p>
+      <h3 class="section-title">🥚 Creature Eggs</h3>
+      <div class="shop-grid" id="shop-eggs"></div>
+      <h3 class="section-title">🎹 Keyboard Themes</h3>
+      <div class="shop-grid" id="shop-themes"></div>
+      <h3 class="section-title">🎉 Celebrations</h3>
+      <div class="shop-grid" id="shop-effects"></div>
+    </section>
+
+    <!-- Zoo -->
+    <section class="screen" id="screen-zoo">
+      <div class="screen-head">
+        <button class="back-btn" data-go="home">⬅</button>
+        <h2>🐾 My Zoo</h2>
+      </div>
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="creatures">Creatures</button>
+        <button class="tab" data-tab="trophies">Trophies</button>
+        <button class="tab" data-tab="badges">Badges</button>
+      </div>
+      <div class="tab-panel active" id="tab-creatures">
+        <p class="sub" id="zoo-count"></p>
+        <div class="zoo-grid" id="zoo-grid"></div>
+      </div>
+      <div class="tab-panel" id="tab-trophies">
+        <div class="trophy-grid" id="trophy-grid"></div>
+        <div class="stats" id="stats"></div>
+      </div>
+      <div class="tab-panel" id="tab-badges">
+        <div class="badge-list" id="badge-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal for sentence done / level done / hatching -->
+  <div class="modal" id="modal" hidden>
+    <div class="modal-card" id="modal-card"></div>
+  </div>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <canvas id="fx"></canvas>
+
+  <script src="js/content.js"></script>
+  <script src="js/sentences.js"></script>
+  <script src="js/creatures.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
