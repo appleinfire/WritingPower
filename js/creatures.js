@@ -1,12 +1,13 @@
+(globalThis.APP = globalThis.APP || {});
 /* Creatures that hatch from eggs in the shop, and the eggs themselves. */
-window.WP_RARITY = {
+globalThis.APP.RARITY = {
   common: { name: "Common", color: "#8bc34a", refund: 10 },
   rare: { name: "Rare", color: "#29b6f6", refund: 30 },
   epic: { name: "Epic", color: "#ab47bc", refund: 60 },
   legendary: { name: "Legendary", color: "#ffb300", refund: 150 }
 };
 
-window.WP_CREATURES = [
+globalThis.APP.CREATURES = [
   // Common
   { id: "frog", emoji: "🐸", name: "Hoppy Frog", rarity: "common" },
   { id: "kitty", emoji: "🐱", name: "Whisker Kitty", rarity: "common" },
@@ -56,13 +57,13 @@ window.WP_CREATURES = [
 ];
 
 // Chance (in percent) of each rarity for each egg.
-window.WP_EGGS = [
+globalThis.APP.EGGS = [
   { id: "common", name: "Common Egg", price: 150, hue: 0, odds: { common: 75, rare: 20, epic: 5, legendary: 0 } },
   { id: "rare", name: "Rare Egg", price: 400, hue: 180, odds: { common: 30, rare: 50, epic: 17, legendary: 3 } },
   { id: "magic", name: "Magic Egg", price: 1000, hue: 280, odds: { common: 0, rare: 40, epic: 45, legendary: 15 } }
 ];
 
-window.WP_THEMES = [
+globalThis.APP.THEMES = [
   { id: "sunny", name: "Sunny", icon: "🌞", price: 0 },
   { id: "rainbow", name: "Rainbow", icon: "🌈", price: 200 },
   { id: "space", name: "Space", icon: "🪐", price: 200 },
@@ -70,14 +71,14 @@ window.WP_THEMES = [
   { id: "candy", name: "Candy", icon: "🍭", price: 200 }
 ];
 
-window.WP_EFFECTS = [
+globalThis.APP.EFFECTS = [
   { id: "confetti", name: "Confetti", icon: "🎊", price: 0 },
   { id: "stars", name: "Stars", icon: "⭐", price: 150 },
   { id: "bubbles", name: "Bubbles", icon: "🫧", price: 150 },
   { id: "hearts", name: "Hearts", icon: "💖", price: 150 }
 ];
 
-window.WP_TROPHIES = {
+globalThis.APP.TROPHIES = {
   k: { emoji: "🥉", name: "Kindergarten Champion" },
   g1: { emoji: "🥈", name: "First Grade Champion" },
   g2: { emoji: "🥇", name: "Second Grade Champion" },

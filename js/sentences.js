@@ -4,7 +4,8 @@
  * sentences; Endless Practice uses Math.random so it never runs out.
  */
 (function () {
-  var C = window.WP_CONTENT;
+  var APP = globalThis.APP;
+  var C = APP.CONTENT;
   var LEVELS = 30;
   var PER_LEVEL = 5;
   var HAND_PER_LEVEL = 3;
@@ -110,7 +111,7 @@
     return s;
   }
 
-  window.WP_SENT = {
+  APP.SENT = {
     LEVELS: LEVELS,
     PER_LEVEL: PER_LEVEL,
     levelSentences: levelSentences,

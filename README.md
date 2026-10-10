@@ -1,68 +1,110 @@
 # ✏️ WritingPower
 
-A spelling and writing game for kids in Kindergarten through 3rd grade.
+**Hear it. Write it. Win prizes!** A spelling game for kindergarten to third grade. Press **🔊 Say it!**: the app reads a sentence aloud, the words are never shown, and the child types it letter by letter into empty boxes.
 
-**Hear it. Write it. Win prizes!** Press **🔊 Say it!** and the game reads a sentence out loud. You never see the words. You only see an empty box for each letter, and you fill the sentence in letter by letter.
+Website: **https://appleinfire.github.io/WritingPower/** (works on iPad, phones and computers; install it with Safari → Share → *Add to Home Screen*, and it works offline).
+
+Built on the family app shell from [Math Expedition](https://github.com/appleinfire/Math) (`templates/app-shell/`).
 
 ## How to play
 
-1. Pick your grade: **Kindergarten**, **First**, **Second** or **Third**.
-2. Pick a mode:
-   - **🗺️ Adventure Levels**: 30 levels per grade with 5 sentences each, getting harder as you go. Finish a level to unlock the next one.
-   - **♾️ Endless Practice**: keep going for as long as you like. Every 5 perfect sentences in a row pays a streak bonus 🔥.
-3. Listen, then type the letters on the big on-screen keyboard (a real keyboard works too).
-   - A right letter turns green. A wrong letter wiggles, and the game counts an "oops".
-   - Spaces, capital letters and the period fill in by themselves.
-   - **🐢 Slow** says the sentence slowly, **💬 Word** says just the word you're on, and **👀 Peek** shows the next letter for a moment (it costs 5 ⭐, but is free in Kindergarten).
-   - **Enter** says the sentence again.
-4. Earn 1–3 stars for each sentence and each level.
+- **Who's writing?** Every child has a profile with a name, a picture and a grade: **Kindergarten**, **First**, **Second** or **Third grade**. Each profile has its own levels, points and creatures.
+- **🗺️ Levels.** Each grade has 30 levels of 5 sentences, getting longer and harder. Finishing a level opens the next one. The child's own grade is shown first; the other grades are one tap away.
+- **♾️ Endless Practice.** New sentences for as long as the child likes. Every 5 perfect sentences in a row pay a 🔥 streak bonus.
+- **Typing.** A big on-screen keyboard (ABC order or QWERTY), or a real keyboard.
+  - A right letter turns green. A wrong one wiggles and counts an "oops".
+  - Spaces, capital letters and punctuation fill in by themselves.
+  - **🐢 Slow** reads the sentence slowly, **💬 Word** reads just the current word, and **👀 Peek** shows the next letter for a moment (5 ⭐; free in Kindergarten).
+- **Stars.** No oops gives 3 stars, 1–2 oopses give 2 stars, more give 1 star.
+- **Sentences.** About 1,000 different sentences per grade, built from about 150 to 350 different words per grade.
 
-## Points ⭐
+## Points ⭐, shop and zoo
 
-| What you do | Points |
+| What the child does | Points |
 |---|---|
 | Each correct letter | +1 |
-| Finish a sentence | +10 (+5 more with no oops) |
-| Finish a level (1 / 2 / 3 stars) | +25 / +50 / +75 (half when you replay it) |
-| Endless streak of 5, 10, 15… | +20, +40, +60… |
-| First game of the day | +30 |
-| Badges (20 to earn) | +20 to +1000 |
+| Finish a sentence | +10 (+5 with no oops) |
+| Finish a level with 1 / 2 / 3 stars | +25 / +50 / +75 (half on a replay) |
+| Endless: 5, 10, 15… perfect in a row | +20, +40, +60… |
+| First visit of the day | +30 |
+| 20 badges | +20 to +1000 |
 
-## Shop & Zoo
+The **🛒 Shop** sells three kinds of things:
+- **🥚 Eggs:** Common 150 ⭐, Rare 400 ⭐, Magic 1000 ⭐. Each hatches one of 42 creatures (Common, Rare, Epic, Legendary). A creature the child already has levels up (★2, ★3…) and gives a few points back.
+- **Keyboard themes:** Rainbow, Space, Ocean, Candy.
+- **Celebration effects:** Confetti, Stars, Bubbles, Hearts.
 
-Spend points in the **🛒 Shop**:
+**🐾 My Zoo** shows the creatures found so far, the grade trophies 🥉🥈🥇🏆 (for finishing all 30 levels of a grade), and the badges.
 
-- **🥚 Eggs** hatch a random creature for your **🐾 Zoo**. There are 42 creatures in four groups: Common, Rare, Epic and Legendary.
-  - Common Egg costs 150 ⭐, Rare Egg costs 400 ⭐ and Magic Egg costs 1000 ⭐. Better eggs hatch rarer creatures more often.
-  - If you hatch a creature you already have, it levels up (★2, ★3…) and gives you a few points back.
-- **🎹 Keyboard themes**: Rainbow, Space, Ocean and Candy.
-- **🎉 Celebrations**: Confetti, Stars, Bubbles and Hearts.
+## For grown-ups
 
-Finish all 30 levels in a grade to win that grade's **trophy** 🥉🥈🥇🏆.
+Behind a multiplication question:
+- **Report:** sentences written, letters right the first time, active days, best streak, a 14-day chart, levels and stars per grade.
+- **Words to practice:** words the child mistyped, with a button to hear each one.
+- **Settings:** sound, slower reading voice, unlock every level, keyboard layout, name.
+- **Family sync:** status, and disconnecting this device.
+- **Save code:** a backup, or a way to move progress without the cloud.
+- **Profiles:** change a child's grade, or delete a profile (it takes a second tap).
+- **Erase progress.**
+- **👀 Preview:** every level is open, nothing is saved, and the shop is closed.
 
-## Running it
+## Same progress on every device
 
-It's a plain web page with no install and no build step:
+1. On the first device choose **Create a family**. Pick a family code (at least 6 letters, for example `smith-tigers`) and a 4–6 digit PIN, and write them down.
+2. On every other device open the website and choose **I already have a family**, then type the same code and PIN.
 
-```sh
-python3 -m http.server 8000
-# then open http://localhost:8000
+Progress syncs through Firebase (the project shared with Math Expedition). The PIN never leaves the device: the browser turns the code and PIN into a key, salted with this app's id (`writing-power`). Families of the two apps never mix, even with the same code and PIN.
+
+Each device keeps a full copy and works offline. When a child plays on two devices offline, the copies are merged without losing anything earned:
+
+| What | When two copies differ |
+|---|---|
+| Levels, creatures, badges, trophies, bought themes and effects, Endless records, words to practice | Kept from both copies; the best value wins |
+| Totals (letters, sentences, points ever earned…) | The higher value wins |
+| Points to spend, equipped theme and effect, settings | The newer copy wins |
+
+## Publishing
+
+Every push to `main` runs the tests and publishes the site to GitHub Pages in about a minute (Actions → *Deploy to GitHub Pages*).
+
+One-time setup:
+- Settings → Pages → Source: **GitHub Actions**.
+- `main` must be the default branch.
+
+## Files
+
+```
+index.html             the page; every script is a plain <script> tag (no build step, no npm)
+css/style.css          all styles: the shell first, then the game (keyboard themes, levels, shop, zoo)
+js/config.js           app name, storage id 'writing-power' (never change), grades, avatars, Firebase config
+js/schema.js           what a profile holds and how two copies merge
+js/content.js          word lists, sentence templates and hand-written sentences for each grade
+js/sentences.js        builds each level's 5 sentences (always the same) and the endless supply
+js/creatures.js        creatures, eggs, keyboard themes, celebrations, trophies
+js/fx.js               read-aloud voice, sounds, celebration effects
+js/app.js              screens and routing: profiles, family, home map, play, shop, zoo, grown-ups
+js/util.js, js/store.js, js/cloud.js, js/vendor/   the app shell: helpers, profiles, Firebase sync, Firebase SDK 10.14.1
+sw.js                  offline cache (every file is listed in FILES)
+manifest.webmanifest, icons/   name and icons for "Add to Home Screen"
+firestore.rules        Firestore security rules (already set in the shared project)
+.github/workflows/pages.yml    tests + deploy to GitHub Pages
+tests/shell.test.js    merging two copies (every rule above), storage, preview, save code, family key, offline file list
+tests/content.test.js  every level of every grade: 5 different, valid sentences, getting harder
+tests/smoke.mjs        in Chromium: a level, Endless, shop, zoo, grown-ups, preview, back gesture, two profiles, reload
+tests/cloud-e2e.mjs    two "devices" syncing through the real Firebase project
 ```
 
-You can also open `index.html` directly, or host the folder on GitHub Pages.
+How the code is organized: every file attaches itself to the global `APP` object. A screen is a function that calls `render(html)`. Buttons carry `data-act="<action>" data-arg="<argument>"`, and their handlers live in `ACTIONS`. `go('<screen>')` changes screen and records it for the back gesture. After changing `APP.state`, the code calls `APP.store.save()`, which saves locally and uploads to the family.
 
-Progress is saved in the browser on this device (`localStorage`).
+To add sentences or words, edit `js/content.js` and run `node tests/content.test.js`.
 
-The read-aloud voice uses the browser's built-in speech, which works in Chrome, Edge and Safari on computers, tablets and phones.
+## Running the tests
 
-## Project layout
+```sh
+node tests/shell.test.js
+node tests/content.test.js
+node tests/smoke.mjs        # needs Playwright with Chromium
+node tests/cloud-e2e.mjs    # needs Playwright and internet
+```
 
-- `index.html` has all the screens.
-- `styles.css` has the look, including the keyboard themes and the phone layout.
-- `js/content.js` has the word lists, sentence templates and hand-written sentences for each grade.
-- `js/sentences.js` builds each level's sentences and the endless supply.
-- `js/creatures.js` has the creatures, eggs, themes, celebrations and trophies.
-- `js/app.js` runs the game: speech, keyboard, points, shop, zoo and saving.
-- `scripts/check-content.js` generates every level and checks the sentences. Run it with `node scripts/check-content.js`.
-
-To add sentences or words, edit `js/content.js` and then run the check script.
+To try the app locally, open `index.html`, or run `python3 -m http.server` and open http://localhost:8000. Family sync needs `http(s)://`.
