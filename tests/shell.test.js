@@ -17,16 +17,18 @@ Object.assign(a, {
   bestStreak: { g1: 7, k: 2 }, missed: { frog: 3, jump: 1 }, badges: { first_sentence: '2026-10-08' }, trophies: { k: '2026-10-08' },
   owned: { theme: ['sunny', 'space'], effect: ['confetti'] }, equipped: { theme: 'space', effect: 'confetti' },
   lastDaily: '2026-10-10', days: { '2026-10-09': { a: 10, c: 8 } },
+  readMissed: { web: 2, 'two big pigs': 1 }, puzzles: { n: 9, level: 'phrases', done: { frog: 2, owl: 1 } },
 });
-Object.assign(a.stats, { pointsEarned: 900, letters: 500, keys: 560, sentences: 40, perfect: 30, levelsDone: 2 });
+Object.assign(a.stats, { pointsEarned: 900, letters: 500, keys: 560, sentences: 40, perfect: 30, levelsDone: 2, read: 80, readRight: 60 });
 a.settings.sound = true;
 Object.assign(b, {
   rev: 200, points: 150, levels: { 'g1-1': { stars: 3 }, 'g1-2': { stars: 2 } }, creatures: { frog: 1, owl: 1 },
   bestStreak: { g1: 4, g2: 5 }, missed: { frog: 1, swim: 2 }, badges: { sent_25: '2026-10-09' }, trophies: {},
   owned: { theme: ['sunny', 'ocean'], effect: ['confetti', 'stars'] }, equipped: { theme: 'ocean', effect: 'stars' },
   lastDaily: '2026-10-09', days: { '2026-10-09': { a: 4, c: 4 }, '2026-10-10': { a: 6, c: 5 } },
+  readMissed: { web: 1, sun: 1 }, puzzles: { n: 4, level: 'words', done: { frog: 1, lion: 1 } },
 });
-Object.assign(b.stats, { pointsEarned: 700, letters: 450, keys: 600, sentences: 35, perfect: 33, levelsDone: 3 });
+Object.assign(b.stats, { pointsEarned: 700, letters: 450, keys: 600, sentences: 35, perfect: 33, levelsDone: 3, read: 90, readRight: 55 });
 b.settings.sound = false;
 const m = S.mergeProfiles(a, b);
 assert.deepStrictEqual(m.levels, { 'g1-0': { stars: 3 }, 'g1-1': { stars: 3 }, 'g1-2': { stars: 2 } }, 'levels: union, best stars per level');
@@ -37,7 +39,10 @@ assert.deepStrictEqual(Object.keys(m.badges).sort(), ['first_sentence', 'sent_25
 assert.deepStrictEqual(m.trophies, { k: '2026-10-08' }, 'trophies from both devices are kept');
 assert.deepStrictEqual([...m.owned.theme].sort(), ['ocean', 'space', 'sunny'], 'themes bought on either device are kept');
 assert.deepStrictEqual([...m.owned.effect].sort(), ['confetti', 'stars'], 'celebrations bought on either device are kept');
-assert.deepStrictEqual(m.stats, { pointsEarned: 900, letters: 500, keys: 600, sentences: 40, perfect: 33, levelsDone: 3 }, 'counters keep the higher value');
+assert.deepStrictEqual(m.stats, { pointsEarned: 900, letters: 500, keys: 600, sentences: 40, perfect: 33, levelsDone: 3, read: 90, readRight: 60 }, 'counters keep the higher value');
+assert.deepStrictEqual(m.puzzles.done, { frog: 2, owl: 1, lion: 1 }, 'puzzle album: pictures made on either device are kept');
+assert.deepStrictEqual([m.puzzles.n, m.puzzles.level], [4, 'words'], 'puzzle pieces and what to read come from the newer copy');
+assert.deepStrictEqual(m.readMissed, { web: 2, 'two big pigs': 1, sun: 1 }, 'words to read: union, higher count per word');
 assert.strictEqual(m.lastDaily, '2026-10-10', 'the later daily bonus date wins, so the bonus is not paid twice');
 assert.strictEqual(m.points, 150, 'points to spend come from the newer copy');
 assert.deepStrictEqual(m.equipped, { theme: 'ocean', effect: 'stars' }, 'equipped theme and effect come from the newer copy');
@@ -50,11 +55,18 @@ assert.deepStrictEqual(S.mergeProfiles(b, a), m, 'merge order does not matter');
 const oldSave = JSON.parse(JSON.stringify(kid));
 delete oldSave.missed;
 delete oldSave.stats.perfect;
+delete oldSave.puzzles;
+delete oldSave.readMissed;
+delete oldSave.stats.read;
 mem[APP.CONFIG.id + '-p-' + kid.id] = JSON.stringify(oldSave);
 S.init();
 const reread = S.profiles()[0];
 assert.deepStrictEqual(reread.missed, {});
 assert.strictEqual(reread.stats.perfect, 0);
+assert.deepStrictEqual([reread.puzzles, reread.readMissed, reread.stats.read], [{ n: 6, level: 'words', done: {} }, {}, 0], 'Reading Puzzles fields get their defaults');
+// A copy from a device without Reading Puzzles yet merges with one that has them.
+const noPz = JSON.parse(JSON.stringify(oldSave));
+assert.deepStrictEqual(S.mergeProfiles(Object.assign(noPz, { rev: 999 }), a).puzzles.done, { frog: 2, owl: 1 });
 S.open(kid.id);
 
 // A deliberate reset is not undone by an older copy from another device.

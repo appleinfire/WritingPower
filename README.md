@@ -11,12 +11,38 @@ Built on the family app shell from [Math Expedition](https://github.com/appleinf
 - **Who's writing?** Every child has a profile with a name, a picture and a grade: **Kindergarten**, **First**, **Second** or **Third grade**. Each profile has its own levels, points and creatures.
 - **🗺️ Levels.** Each grade has 30 levels of 5 sentences, getting longer and harder. Finishing a level opens the next one. The child's own grade is shown first; the other grades are one tap away.
 - **♾️ Endless Practice.** New sentences for as long as the child likes. Every 5 perfect sentences in a row pay a 🔥 streak bonus.
+- **🧩 Reading Puzzles.** The other way round: read a short word or phrase, tap its picture, and a puzzle of a zoo creature comes together (see below).
 - **Typing.** A big on-screen keyboard (ABC order or QWERTY), or a real keyboard.
   - A right letter turns green. A wrong one wiggles and counts an "oops".
   - Spaces, capital letters and punctuation fill in by themselves.
   - **🐢 Slow** reads the sentence slowly, **💬 Word** reads just the current word, and **👀 Peek** shows the next letter for a moment (5 ⭐; free in Kindergarten).
 - **Stars.** No oops gives 3 stars, 1–2 oopses give 2 stars, more give 1 star.
 - **Sentences.** About 1,000 different sentences per grade, built from about 150 to 350 different words per grade.
+
+## 🧩 Reading Puzzles
+
+The other half of writing: here the child **reads** a short word or phrase and finds its picture, and every right answer brings a piece of a picture of one of the zoo's creatures. Made for kindergarten, like Puzzle Time in Math Expedition (same board, jigsaw cut and scenes). The home screen has a tile; the album page has the three puzzles, the album of 42 pictures, and two settings: what to read and how many pieces (4, 6, 9 or 12).
+
+| Puzzle | How it goes | At the end |
+|---|---|---|
+| 🧲 **Snap!** | Read the word, tap its picture (one of three): a piece flies into place. | *You made Hoppy Frog!* |
+| ✋ **Find the piece** | The word is written in a hole of the picture. Three pieces with pictures lie in the tray; drag the right one into the hole (a tap works too). Always single words, so the word fits in the hole. | the same |
+| ☁️ **Who's hiding?** | The picture is under clouds; every word read blows one away. After the first cloud *I know who it is!* offers three creatures; a wrong guess waits for the next cloud. | A right guess blows all the clouds away: +1 ⭐ for every cloud still there. |
+
+**What to read** (a setting on the album page):
+- **🔤 Words:** 40 short words to sound out (cat, pig, sun, bed, fox…), each with one clear picture.
+- **📝 Phrases:** *a big cat*, *two dogs*, *three little hens*, mixed with words. Besides the picture word they use only *a, an, two, three, big, little*, words kindergartners learn by sight.
+
+**So that it is reading, not guessing:**
+- The word is shown, **never read aloud**: the voice says only what to do (🔊 *What to do*). The font has the a and g children learn to write.
+- The wrong pictures are words **one letter away** (cat → cap, hat), in different places of the word, and one starts with the same letter whenever the list has one, so the first letter is not enough. Pictures that the other word could also name (🎩/🧢, 🥫/🗑️, 🚐/🚌, 🚐/🚕) are never in the same problem.
+- In a phrase each wrong picture changes **one thing**: how many, the size, or the word.
+- **👆 Sound it out** lights up the letters one after another (a phrase: word by word). A first miss does it by itself; a second miss reads the word aloud and makes the right picture glow.
+- A word read wrong comes back in about every fourth problem (🔁 *Again*) until it is read right on the first try.
+
+**Points:** +1 ⭐ for each word read right on the first try, +15 ⭐ for a finished puzzle. The album shows Common creatures first, Legendary last; a picture already made can be made again. Badges: Puzzle Reader, Bookworm (100 words read), Puzzle Master (all 42 pictures). *For grown-ups* shows the words read, how many were right on the first try, and **Words to read** (still to be read right again).
+
+The words, problems, pictures and cut are in `js/reading.js`, the screens in `js/reading-ui.js`. To add a word, add it to `RD.WORDS` with a picture only that word names, and run `node tests/reading.test.js`.
 
 ## Points ⭐, shop and zoo
 
@@ -26,8 +52,9 @@ Built on the family app shell from [Math Expedition](https://github.com/appleinf
 | Finish a sentence | +10 (+5 with no oops) |
 | Finish a level with 1 / 2 / 3 stars | +25 / +50 / +75 (half on a replay) |
 | Endless: 5, 10, 15… perfect in a row | +20, +40, +60… |
+| Reading Puzzles: a word read right on the first try / a finished puzzle | +1 / +15 |
 | First visit of the day | +30 |
-| 20 badges | +20 to +1000 |
+| 23 badges | +20 to +1000 |
 
 The **🛒 Shop** sells three kinds of things:
 - **🥚 Eggs:** Common 150 ⭐, Rare 400 ⭐, Magic 1000 ⭐. Each hatches one of 42 creatures (Common, Rare, Epic, Legendary). A creature the child already has levels up (★2, ★3…) and gives a few points back.
@@ -41,6 +68,7 @@ The **🛒 Shop** sells three kinds of things:
 Behind a multiplication question:
 - **Report:** sentences written, letters right the first time, active days, best streak, a 14-day chart, levels and stars per grade.
 - **Words to practice:** words the child mistyped, with a button to hear each one.
+- **Reading Puzzles:** words and phrases read, right on the first try, the album, and words to read again.
 - **Settings:** sound, slower reading voice, unlock every level, keyboard layout, name.
 - **Family sync:** status, and disconnecting this device.
 - **Save code:** a backup, or a way to move progress without the cloud.
@@ -63,9 +91,9 @@ Each device keeps a full copy and works offline. When a child plays on two devic
 
 | What | When two copies differ |
 |---|---|
-| Levels, creatures, badges, trophies, bought themes and effects, Endless records, words to practice | Kept from both copies; the best value wins |
+| Levels, creatures, badges, trophies, bought themes and effects, Endless records, words to practice and to read, the puzzle album | Kept from both copies; the best value wins |
 | Totals (letters, sentences, points ever earned…) | The higher value wins |
-| Points to spend, equipped theme and effect, settings | The newer copy wins |
+| Points to spend, equipped theme and effect, settings, puzzle pieces and what to read | The newer copy wins |
 
 ## Publishing
 
@@ -85,6 +113,8 @@ js/schema.js           what a profile holds and how two copies merge
 js/content.js          word lists, sentence templates and hand-written sentences for each grade
 js/sentences.js        builds each level's 5 sentences (always the same) and the endless supply
 js/creatures.js        creatures, eggs, keyboard themes, celebrations, trophies
+js/reading.js          Reading Puzzles rules: picture words, problems, creature pictures in scenes, jigsaw cut, album
+js/reading-ui.js       Reading Puzzles screens: album page, Snap!, Find the piece, Who's hiding?
 js/fx.js               read-aloud voice, sounds, celebration effects
 js/app.js              screens and routing: profiles, family, home map, play, shop, zoo, grown-ups
 js/util.js, js/store.js, js/cloud.js, js/vendor/   the app shell: helpers, profiles, Firebase sync, Firebase SDK 10.14.1
@@ -94,7 +124,8 @@ firestore.rules        Firestore security rules (already set in the shared proje
 .github/workflows/pages.yml    tests + deploy to GitHub Pages
 tests/shell.test.js    merging two copies (every rule above), storage, preview, save code, family key, offline file list
 tests/content.test.js  every level of every grade: 5 different, valid sentences, getting harder
-tests/smoke.mjs        in Chromium: a level, Endless, shop, zoo, grown-ups, preview, back gesture, two profiles, reload
+tests/reading.test.js  Reading Puzzles: one picture per word, wrong pictures one letter or one thing away, review, cut, album
+tests/smoke.mjs        in Chromium: a level, Endless, shop, zoo, three reading puzzles, grown-ups, preview, back gesture, two profiles, reload
 tests/cloud-e2e.mjs    two "devices" syncing through the real Firebase project
 ```
 
@@ -107,6 +138,7 @@ To add sentences or words, edit `js/content.js` and run `node tests/content.test
 ```sh
 node tests/shell.test.js
 node tests/content.test.js
+node tests/reading.test.js
 node tests/smoke.mjs        # needs Playwright with Chromium
 node tests/cloud-e2e.mjs    # needs Playwright and internet
 ```

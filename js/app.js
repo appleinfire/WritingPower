@@ -1,5 +1,5 @@
 // WritingPower screens on the family app shell: profile picker, family sync, grown-ups page, preview, routing
-// (from the shell) plus the game: grade map, levels, Endless Practice, shop with eggs, zoo.
+// (from the shell) plus the game: grade map, levels, Endless Practice, shop with eggs, zoo. Reading Puzzles are in js/reading-ui.js.
 // Screens render into #app; every click is routed through data-act="<action>" data-arg="<argument>" attributes.
 (function () {
   const APP = globalThis.APP, U = APP.U, S = APP.store, CFG = APP.CONFIG, FX = APP.fx;
@@ -104,6 +104,9 @@
     { id: 'grade_done', icon: '🏆', name: 'Grade Champion', desc: 'Finish all levels in a grade', reward: 250, test: (p) => Object.keys(p.trophies).length >= 1 },
     { id: 'shopper', icon: '🛍️', name: 'Style Star', desc: 'Buy a keyboard theme or celebration', reward: 20, test: (p) => p.owned.theme.length + p.owned.effect.length > 2 },
     { id: 'days_5', icon: '📅', name: 'Five Days', desc: 'Write on 5 different days', reward: 100, test: (p) => Object.keys(p.days).length >= 5 },
+    { id: 'first_puzzle', icon: '🧩', name: 'Puzzle Reader', desc: 'Finish a reading puzzle', reward: 20, test: (p) => APP.reading.count(p) >= 1 },
+    { id: 'read_100', icon: '📖', name: 'Bookworm', desc: 'Read 100 words in reading puzzles', reward: 75, test: (p) => p.stats.read >= 100 },
+    { id: 'album_all', icon: '🖼️', name: 'Puzzle Master', desc: 'Make every picture in the puzzle album', reward: 500, test: (p) => APP.reading.count(p) >= APP.reading.total() },
   ];
   // Every award goes through earn(): in the preview it gives nothing.
   function earn(n) {
@@ -288,7 +291,7 @@
     if (st && APP.state !== st) { st = null; return who(); } // this profile was deleted on another device
     if (cur === 'start') { if (S.profiles().length) startScreen(); return; }
     if (!cur || $('#modal')) return;
-    const redraw = { who, home, shop, zoo }[cur];
+    const redraw = { who, home, shop, zoo, puzzles: () => APP.readingUI.show() }[cur];
     if (redraw) redraw();
   }
 
@@ -319,6 +322,7 @@
       <div class="tiles">
         <button class="tile t-shop" data-act="go" data-arg="shop"><span>🛒</span><b>Shop</b><small>Eggs, themes and more</small></button>
         <button class="tile t-zoo" data-act="go" data-arg="zoo"><span>🐾</span><b>My Zoo</b><small>${found(st)} / ${APP.CREATURES.length} creatures</small></button>
+        <button class="tile t-pz" data-act="go" data-arg="puzzles"><span>🧩</span><b>Reading Puzzles</b><small>${APP.reading.count(st) ? `Album: ${APP.reading.count(st)} / ${APP.reading.total()}` : 'New! Read words, make pictures'}</small></button>
         <button class="tile" data-act="go" data-arg="who"><span>👥</span><b>Switch</b><small>Another ${WORD}</small></button>
         <button class="tile" data-act="go" data-arg="parent"><span>🔒</span><b>For grown-ups</b><small>Report and settings</small></button>
       </div>
@@ -654,6 +658,7 @@
     const days = U.range(0, 13).map((i) => { const d = new Date(); d.setDate(d.getDate() - (13 - i)); const k = U.dateKey(d); return { k, n: (st.days[k] || {}).a || 0, wd: 'SMTWTFS'[d.getDay()] }; });
     const maxN = Math.max(10, ...days.map((d) => d.n));
     const tricky = Object.entries(st.missed).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    const readTricky = Object.entries(st.readMissed).sort((a, b) => b[1] - a[1]).slice(0, 10);
     const kids = S.profiles().map((p) => `<li class="kid"><span class="kav">${p.avatar}</span>
         <span class="kname"><b>${esc(p.name)}</b><small>${p.stats.sentences} sentences${p.lastPlayed ? ' · last played ' + p.lastPlayed : ''}</small></span>
         <span class="chips">${CFG.kinds.map((g) => `<button class="chip ${p.kind === g.id ? 'sel' : ''}" data-act="setKind" data-arg="${p.id}:${g.id}">${CONTENT[g.id].short}</button>`).join('')}</span>
@@ -673,6 +678,9 @@
       <section><h2>Levels</h2><ul class="glist">${GRADES.map((g) => `<li><span>${CONTENT[g].emoji} ${CONTENT[g].name}</span><b>${gradeDone(g)}/${SENT.LEVELS}</b><small>⭐ ${gradeStars(g)}${st.bestStreak[g] ? ` · Endless best 🔥 ${st.bestStreak[g]}` : ''}${st.trophies[g] ? ' · ' + APP.TROPHIES[g].emoji : ''}</small></li>`).join('')}</ul></section>
       <section><h2>Words to practice</h2>
         ${tricky.length ? `<p class="muted">Words with a mistyped letter, most often first. Tap a word to hear it.</p><div class="chips">${tricky.map(([w, n]) => `<button class="chip" data-act="sayWord" data-arg="${esc(w)}">${esc(w)} <small>×${n}</small></button>`).join('')}</div>` : '<p class="muted">No mistakes yet.</p>'}</section>
+      <section><h2>🧩 Reading Puzzles</h2>
+        ${s.read ? `<p>${s.read} words and phrases read, <b>${pct(s.readRight, s.read)}%</b> right on the first try. Album: ${APP.reading.count(st)} of ${APP.reading.total()} pictures.</p>` : '<p class="muted">Not played yet. Short words to read (cat, sun, pig) and little phrases (two big pigs), each matched to its picture.</p>'}
+        ${readTricky.length ? `<p class="muted">Words to read: read wrong and not yet read right again. Tap one to hear it.</p><div class="chips">${readTricky.map(([w, n]) => `<button class="chip" data-act="sayWord" data-arg="${esc(w)}">${esc(w)} <small>×${n}</small></button>`).join('')}</div>` : ''}</section>
       <section><h2>👀 Look at everything</h2>
         <p class="muted">Open every level in every grade to see what ${esc(st.name)} will meet later. Nothing is saved in the preview. It ends when you tap <b>Exit</b>, come back here, or switch ${WORD}.</p>
         <button class="btn" data-act="startPreview">Start preview 👀</button></section>
@@ -732,13 +740,14 @@
     closeModal();
     FX.hush();
     if (where !== 'parent') { ui.resetArmed = false; ui.delArmed = null; ui.discArmed = false; }
-    const [scr] = where.split(':');
+    const k = where.indexOf(':'), scr = k < 0 ? where : where.slice(0, k), arg = k < 0 ? '' : where.slice(k + 1); // 'puzzles:snap:frog' → puzzles, snap:frog
     sess = null;
     if (scr === 'who') return who();
     if (scr === 'new') { ui.newKid = null; return newProfile(); }
     if (scr === 'family') { ui.fam = null; return family(); }
     if (!st) return who();
     if (scr === 'parent' && S.preview) { endPreview(); toast('Preview ended'); }
+    if (scr === 'puzzles') return APP.readingUI.show(arg);
     ({ home, shop, zoo, parent: parentGate }[scr] || home)();
   }
 
@@ -838,7 +847,10 @@
       home();
     },
   };
-  function act(name, arg, el) { if (ACTIONS[name]) ACTIONS[name](arg, el); }
+  function act(name, arg, el) {
+    if (ACTIONS[name]) ACTIONS[name](arg, el);
+    else if (st && APP.readingUI.actions[name]) APP.readingUI.actions[name](arg, el); // Reading Puzzles (js/reading-ui.js)
+  }
 
   function init() {
     S.init();
@@ -890,7 +902,9 @@
     startScreen();
   }
 
-  APP.app = { init, go, session: () => sess }; // session() is used by the browser tests
+  // kit: what the Reading Puzzles screens (js/reading-ui.js) borrow from the app
+  const kit = { state: () => st, render, header, toast, earn, showPoints, checkBadges, live, go, save: () => S.save(), setCur: (c) => { cur = c; } };
+  APP.app = { init, go, kit, session: () => sess }; // session() is used by the browser tests
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();

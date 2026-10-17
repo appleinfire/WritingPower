@@ -1,6 +1,6 @@
 // Browser smoke test: node tests/smoke.mjs   (needs Playwright; uses Chromium)
-// A profile plays a level and Endless Practice, hatches an egg, buys a theme, visits the zoo; the grown-ups gate and
-// report; preview saves nothing; back gesture; a second profile; reload. Fails on any console error.
+// A profile plays a level and Endless Practice, hatches an egg, buys a theme, visits the zoo, makes three reading puzzles;
+// the grown-ups gate and report; preview saves nothing; back gesture; a second profile; reload. Fails on any console error.
 import { createRequire } from 'module';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -100,6 +100,61 @@ ok(await page.locator('.zcard:not(.unknown)').count() === 1, 'the creature is in
 await page.click('[data-act=zooTab][data-arg=badges]');
 ok(await page.locator('.badge:not(.unknown)').count() >= 3, 'badges are listed');
 
+// Reading Puzzles (fast: reduced motion shortens every animation and wait)
+await page.emulateMedia({ reducedMotion: 'reduce' });
+await page.click('[data-act=go][data-arg=home]');
+await page.click('.tile[data-arg=puzzles]');
+ok(await page.locator('.pz-thumb.mystery').count() === 42, 'the puzzle album has 42 pictures to make');
+const puz = () => state(() => { const g = APP.readingUI.playing(); return g && { text: g.prob.text, answer: g.prob.answer, left: g.left.length, done: g.done, mode: g.mode, item: g.item.id }; });
+await page.click('[data-act=rdPlay][data-arg=snap]');
+let q = await puz();
+ok((await page.textContent('#rdread')).replace(/\s+/g, ' ').trim() === q.text, 'the word to read is shown');
+await page.click(`.pz-ans[data-arg="${(q.answer + 1) % 3}"]`);
+ok(!(await state(() => window.__said)).some((t) => t.includes(q.text)), 'the word is not read aloud after one miss');
+ok(await page.waitForSelector('.rd-l.lit, .rd-w.lit', { timeout: 2000 }).then(() => true, () => false), 'a miss lights up the letters to sound out');
+ok(await state(() => Object.keys(APP.state.readMissed).length === 1), 'the word read wrong is recorded');
+const ptsBefore = await state(() => APP.state.points);
+while (!(q = await puz()).done) {
+  await page.click(`.pz-ans[data-arg="${q.answer}"]`);
+  await page.waitForFunction((n) => { const g = APP.readingUI.playing(); return g.done || g.left.length < n && !g.busy; }, q.left);
+}
+await page.waitForSelector('.pz-win');
+ok(await state(() => APP.state.puzzles.done[APP.readingUI.playing().item.id] === 1 && APP.state.stats.read === 6 && APP.state.stats.readRight === 5), 'Snap! finished: the picture is in the album, 6 words read, 5 on the first try');
+ok(await state(() => APP.state.points) - ptsBefore >= 5 + 15, 'stars: +1 per first-try word, +15 for the puzzle');
+await page.waitForFunction(() => APP.state.badges.first_puzzle);
+ok(true, 'Puzzle Reader badge');
+
+await page.click('[data-act=rdNext]');
+ok((await puz()).mode === 'snap', 'Next puzzle: another Snap!');
+await page.click('[data-act=go][data-arg=puzzles]');
+await page.click('[data-act=rdLevel][data-arg=phrases]');
+ok(await state(() => APP.state.puzzles.level === 'phrases'), 'phrases chosen');
+await page.click('[data-act=rdPlay][data-arg=find]');
+q = await puz();
+ok(!q.text.includes(' ') && await page.textContent('.pz-hole text') === q.text, 'Find the piece: a single word, written in the hole');
+while (!(q = await puz()).done) {
+  await page.click(`.pz-tp[data-v="${q.answer}"]`);
+  await page.waitForFunction((n) => { const g = APP.readingUI.playing(); return g.done || g.left.length < n && !g.busy; }, q.left);
+}
+await page.waitForSelector('.pz-win');
+ok(await state(() => APP.reading.count(APP.state) === 2), 'Find the piece finished: 2 pictures in the album');
+
+await page.click('[data-act=go][data-arg=puzzles]');
+await page.click('[data-act=rdPlay][data-arg=hide]');
+q = await puz();
+ok(await page.isDisabled('.pz-guess'), 'no guessing before a cloud is gone');
+await page.click(`.pz-ans[data-arg="${q.answer}"]`);
+await page.waitForFunction(() => !APP.readingUI.playing().busy && !document.querySelector('.pz-guess').disabled);
+const starsBeforeGuess = await state(() => APP.state.points);
+await page.click('[data-act=rdGuess]');
+await page.click(`[data-act=rdWho][data-arg="${q.item}"]`);
+await page.waitForSelector('.pz-win');
+ok(await state(() => APP.state.points) - starsBeforeGuess === 15 + 5, 'a right early guess: +15 for the puzzle and +1 for each of the 5 clouds left');
+ok(await page.locator('.pz-thumb.got').count() === 0 && await state(() => APP.reading.count(APP.state) === 3), '3 pictures in the album');
+await page.click('[data-act=go][data-arg=puzzles]');
+ok(await page.locator('.pz-thumb.got').count() === 3, 'the album page shows the 3 pictures');
+await page.emulateMedia({ reducedMotion: 'no-preference' });
+
 // Grown-ups gate
 await page.click('[data-act=go][data-arg=home]');
 await page.click('[data-act=go][data-arg=parent]');
@@ -110,7 +165,8 @@ ok(await page.isVisible('text=Not quite'), 'wrong answer keeps the gate closed')
 await page.fill('#gate-in', String(g[0] * g[1]));
 await page.click('[data-act=gate]');
 ok(await page.isVisible('text=Report for'), 'grown-ups page opens');
-ok(await page.locator('[data-act=sayWord]').count() === 1, 'words to practice are listed');
+ok(await page.locator('section', { hasText: 'Words to practice' }).locator('[data-act=sayWord]').count() === 1, 'words to practice are listed');
+ok(/13 words and phrases read/.test(await page.textContent('main.parent')), 'the report shows Reading Puzzles');
 
 // Preview saves nothing
 const before = await state(() => JSON.stringify(APP.state));
@@ -123,6 +179,12 @@ ok(/nothing is saved/.test(await page.textContent('#modal')), 'the preview says 
 await page.click('[data-act=nextSentence]');
 await page.click('[data-act=quit]');
 await page.click('#modal [data-act=leave]');
+await page.click('.tile[data-arg=puzzles]');
+ok(await page.isVisible('.pvbar'), 'the preview bar shows on the puzzle page');
+await page.click('[data-act=rdPlay][data-arg=snap]');
+q = await puz();
+await page.click(`.pz-ans[data-arg="${q.answer}"]`);
+await page.waitForFunction(() => APP.readingUI.playing().left.length < APP.readingUI.playing().total);
 await page.click('[data-act=exitPreview]');
 ok(await state(() => JSON.stringify(APP.state)) === before, 'nothing from the preview was saved');
 
