@@ -30,6 +30,7 @@ jobs:
         run: |
           node tests/shell.test.js
           node tests/content.test.js
+          node tests/reading.test.js
       - name: Build site
         run: |
           mkdir _site
